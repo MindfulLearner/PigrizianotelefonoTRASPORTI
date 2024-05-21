@@ -1,11 +1,11 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import { handleGetBusTime } from './handlers/intentHandlers';
 
 const app = express();
 app.use(bodyParser.json());
 
-app.post('/alexa', (req, res) => {
+app.post('/alexa', (req: Request, res: Response) => {
   const intent = req.body.request.intent.name;
 
   if (intent === 'GetBusTime') {
