@@ -3,7 +3,7 @@
 ## Descrizione
 Questa skill per Amazon Alexa permette agli utenti di Milano di ottenere informazioni sui trasporti pubblici forniti da ATM "Azienda Trasporti Milanesi". Gli utenti possono chiedere informazioni su orari, fermate, percorsi e altre utili informazioni relative ai trasporti pubblici.
 
-## Funzionalità
+## Funzional
 - Ottenere orari e tempi di attesa per le fermate degli autobus e tram
 - Ricevere aggiornamenti sullo stato del servizio delle linee metropolitane
 - Pianificare il percorso più veloce utilizzando i mezzi pubblici
