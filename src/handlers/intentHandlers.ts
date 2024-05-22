@@ -29,7 +29,7 @@ export const handleGetBusTime = async (req: Request, res: Response) => {
       response: {
         outputSpeech: {
           type: 'PlainText',
-          text: 'Non riesco a ottenere le informazioni sui trasporti in questo momento. Riprova più tardi.',
+          text: 'Non riesco a ottenere le informazioni sui trasporti in questo momento. Riprova piï¿½ tardi.',
         },
         shouldEndSession: true,
       },
