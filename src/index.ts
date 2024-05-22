@@ -9,6 +9,11 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 
+// Rotta di test per GET /
+app.get('/', (req: Request, res: Response) => {
+  res.send('Server is running and ready to accept requests!');
+});
+
 app.post('/alexa', (req: Request, res: Response) => {
   console.log('Received request:', JSON.stringify(req.body, null, 2)); // Log the request
 
