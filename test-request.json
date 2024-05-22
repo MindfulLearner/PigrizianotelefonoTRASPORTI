@@ -1,0 +1,18 @@
+{
+    "request": {
+        "type": "IntentRequest",
+        "intent": {
+            "name": "GetBusTime",
+            "slots": {
+                "BusNovantaDue": {
+                    "name": "BusNovantaDue",
+                    "value": "92"
+                },
+                "Direzione": {
+                    "name": "Direzione",
+                    "value": "Duomo"
+                }
+            }
+        }
+    }
+}

@@ -9,7 +9,7 @@ dotenv.config();
 const app = express();
 app.use(bodyParser.json());
 
-// Rotta di test per GET /
+// Test route for GET /
 app.get('/', (req: Request, res: Response) => {
   res.send('Server is running and ready to accept requests!');
 });
@@ -45,7 +45,6 @@ app.listen(PORT, async () => {
       authtoken: process.env.NGROK_AUTHTOKEN
     });
 
-    // Aggiungi debug per vedere cosa restituisce ngrok
     console.log('ngrok connection details:', listener);
 
     const url = listener.url();
