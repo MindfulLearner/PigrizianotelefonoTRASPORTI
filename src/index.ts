@@ -3,14 +3,21 @@ import {
     HandlerInput,
     RequestHandler,
     SkillBuilders,
-} from "ask-sdk-core";
+} from "ask-sdk";
 import { Response, SessionEndedRequest } from "ask-sdk-model";
 import express from "express";
 import bodyParser from "body-parser";
+import { ExpressAdapter } from "ask-sdk-express-adapter";
 
-const Alexa = require("ask-sdk-core");
+// const Alexa = require("ask-sdk-core");
 const app = express();
-app.use(bodyParser);
+app.use(
+    bodyParser.urlencoded({
+        extended: true,
+    })
+);
+
+app.use(bodyParser.json());
 const PORT = process.env.PORT || 3000;
 
 const LaunchRequestHandler: RequestHandler = {
@@ -30,24 +37,21 @@ const LaunchRequestHandler: RequestHandler = {
     },
 };
 
-const HelloWorldIntentHandler: RequestHandler = {
-    canHandle(handlerInput) {
+const BUSpercorsoIntentHandler: RequestHandler = {
+    canHandle(handlerInput: HandlerInput): boolean {
+        const request = handlerInput.requestEnvelope.request;
         return (
-            Alexa.getRequestType(handlerInput.requestEnvelope) ===
-                "IntentRequest" &&
-            Alexa.getIntentName(handlerInput.requestEnvelope) ===
-                "HelloWorldIntent"
+            request.type === "IntentRequest" &&
+            request.intent.name === "AskWeatherIntent"
         );
     },
-    handle(handlerInput) {
-        const speakOutput = "Hello World!";
+    handle(handlerInput: HandlerInput): Response {
+        const speechText = "The weather today is sunny.";
 
-        return (
-            handlerInput.responseBuilder
-                .speak(speakOutput)
-                //.reprompt('add a reprompt if you want to keep the session open for the user to respond')
-                .getResponse()
-        );
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withSimpleCard("The weather today is sunny.", speechText)
+            .getResponse();
     },
 };
 const ErrorHandler: ErrorHandler = {
@@ -66,16 +70,23 @@ const ErrorHandler: ErrorHandler = {
     },
 };
 
-exports.handler = Alexa.SkillBuilders.custom()
-    .addRequestHandlers(LaunchRequestHandler, HelloWorldIntentHandler)
-    .addErrorHandlers(ErrorHandler)
-    .withCustomUserAgent("sample/hello-world/v1.2")
-    .lambda();
+// exports.handler = Alexa.SkillBuilders.custom()
+//     .addRequestHandlers(LaunchRequestHandler, BUSpercorsoIntentHandler)
+//     .addErrorHandlers(ErrorHandler);
 
-const skillBuilder = SkillBuilders.custom().addRequestHandler(
-    LaunchRequestHandler,
-    HelloWorldIntentHandler
-);
+const skillBuilder = SkillBuilders.custom()
+    .addRequestHandlers(LaunchRequestHandler, BUSpercorsoIntentHandler)
+    .addErrorHandlers(ErrorHandler);
+
+const skill = skillBuilder.create();
+const adapter = new ExpressAdapter(skill, false, false);
+app.post("/api/v1/webhook-alexa", adapter.getRequestHandlers());
+
+app.use(express.json());
+
+app.listen(PORT, () => {
+    console.log("server is running on port " + PORT);
+});
 
 // import express from 'express';
 // import bodyParser from 'body-parser';
