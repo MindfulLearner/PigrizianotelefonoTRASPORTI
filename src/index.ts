@@ -3,21 +3,21 @@ import {
     HandlerInput,
     RequestHandler,
     SkillBuilders,
-} from "ask-sdk";
+} from "ask-sdk-core";
 import { Response, SessionEndedRequest } from "ask-sdk-model";
 import express from "express";
-import bodyParser from "body-parser";
 import { ExpressAdapter } from "ask-sdk-express-adapter";
-
+import morgan from "morgan";
 // const Alexa = require("ask-sdk-core");
 const app = express();
-app.use(
-    bodyParser.urlencoded({
-        extended: true,
-    })
-);
+app.use(morgan("dev"));
+// app.use(
+//     bodyParser.urlencoded({
+//         extended: true,
+//     })
+// );
 
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 const PORT = process.env.PORT || 3000;
 
 const LaunchRequestHandler: RequestHandler = {
@@ -26,27 +26,30 @@ const LaunchRequestHandler: RequestHandler = {
         return request.type === "LaunchRequest";
     },
     handle(handlerInput: HandlerInput): Response {
-        const speechText = "Ciao! Chiedemi quello che vuoi!";
-        const repromptSpeech = "Ti serve ancora sapere qualcosa?";
+        const speechText = "Tutto quello che ti serve per muoverti a Milano";
+        // const repromptSpeech = "Ti serve ancora sapere qualcosa?";
 
-        return handlerInput.responseBuilder
-            .speak(speechText)
-            .reprompt(repromptSpeech)
-            .withSimpleCard("Milano Mezzi", speechText)
-            .getResponse();
+        return (
+            handlerInput.responseBuilder
+                .speak(speechText)
+                // .reprompt(repromptSpeech)
+                // .withSimpleCard("Milano Mezzi", speechText)
+                .getResponse()
+        );
     },
 };
 
-const BUSpercorsoIntentHandler: RequestHandler = {
+const GetBusTimeIntentHandler: RequestHandler = {
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return (
             request.type === "IntentRequest" &&
-            request.intent.name === "AskWeatherIntent"
+            request.intent.name === "GetBusTime"
         );
     },
     handle(handlerInput: HandlerInput): Response {
-        const speechText = "The weather today is sunny.";
+        const speechText =
+            "L'autobus 92 passa tra 42 anni. La 92 è l'autobus nella quale troverai tutte le risposte.";
 
         return handlerInput.responseBuilder
             .speak(speechText)
@@ -71,17 +74,24 @@ const ErrorHandler: ErrorHandler = {
 };
 
 // exports.handler = Alexa.SkillBuilders.custom()
-//     .addRequestHandlers(LaunchRequestHandler, BUSpercorsoIntentHandler)
+//     .addRequestHandlers(LaunchRequestHandler, GetBusTimeIntentHandler)
 //     .addErrorHandlers(ErrorHandler);
 
+exports.handler = SkillBuilders.custom()
+    .addRequestHandlers(LaunchRequestHandler, GetBusTimeIntentHandler)
+    .addErrorHandlers(ErrorHandler);
+
 const skillBuilder = SkillBuilders.custom()
-    .addRequestHandlers(LaunchRequestHandler, BUSpercorsoIntentHandler)
+    .addRequestHandlers(LaunchRequestHandler, GetBusTimeIntentHandler)
     .addErrorHandlers(ErrorHandler);
 
 const skill = skillBuilder.create();
 const adapter = new ExpressAdapter(skill, false, false);
 app.post("/api/v1/webhook-alexa", adapter.getRequestHandlers());
-
+app.post("/api/v1/webhook-alexa", (req, res) => {
+    console.log(res);
+    console.log(req);
+});
 app.use(express.json());
 
 app.listen(PORT, () => {
