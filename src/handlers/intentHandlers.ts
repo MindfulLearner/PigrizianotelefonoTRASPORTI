@@ -13,6 +13,20 @@ export const handleGetBusTime = async (req: Request, res: Response) => {
 
     const speechText = `Il prossimo autobus della linea ${busLine} verso ${direction} arriva tra ${nextBusTime}`;
 
+    const aplDocument = {
+      type: "APL",
+      version: "1.4",
+      mainTemplate: {
+        items: [
+          {
+            type: "Text",
+            text: speechText,
+            fontSize: "50dp"
+          }
+        ]
+      }
+    };
+
     res.json({
       version: '1.0',
       response: {
@@ -20,6 +34,13 @@ export const handleGetBusTime = async (req: Request, res: Response) => {
           type: 'PlainText',
           text: speechText,
         },
+        directives: [
+          {
+            type: "Alexa.Presentation.APL.RenderDocument",
+            token: "welcomeToken",
+            document: aplDocument
+          }
+        ],
         shouldEndSession: true,
       },
     });
@@ -29,7 +50,7 @@ export const handleGetBusTime = async (req: Request, res: Response) => {
       response: {
         outputSpeech: {
           type: 'PlainText',
-          text: 'Non riesco a ottenere le informazioni sui trasporti in questo momento. Riprova più tardi.',
+          text: 'Non riesco a ottenere le informazioni sui trasporti in questo momento. Riprova piÃ¹ tardi.',
         },
         shouldEndSession: true,
       },
