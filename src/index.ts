@@ -8,16 +8,10 @@ import { Response, SessionEndedRequest } from "ask-sdk-model";
 import express from "express";
 import { ExpressAdapter } from "ask-sdk-express-adapter";
 import morgan from "morgan";
-// const Alexa = require("ask-sdk-core");
+
 const app = express();
 app.use(morgan("dev"));
-// app.use(
-//     bodyParser.urlencoded({
-//         extended: true,
-//     })
-// );
 
-// app.use(bodyParser.json());
 const PORT = process.env.PORT || 3000;
 
 const LaunchRequestHandler: RequestHandler = {
@@ -26,7 +20,7 @@ const LaunchRequestHandler: RequestHandler = {
         return request.type === "LaunchRequest";
     },
     handle(handlerInput: HandlerInput): Response {
-        const speechText = "Tutto quello che ti serve per muoverti a Milano";
+        const speechText = "Tua mamma troia";
         // const repromptSpeech = "Ti serve ancora sapere qualcosa?";
 
         return (
@@ -57,6 +51,20 @@ const GetBusTimeIntentHandler: RequestHandler = {
             .getResponse();
     },
 };
+const getMetroStatusIntentHandler: RequestHandler = {
+    canHandle(handlerInput: HandlerInput): boolean {
+        const request = handlerInput.requestEnvelope.request;
+        return (
+            request.type === "IntentRequest" &&
+            request.intent.name === "getMetroStatus"
+        );
+    },
+    handle(handlerInput: HandlerInput): Response {
+        const speechText = "La metro gialla è aperta";
+
+        return handlerInput.responseBuilder.speak(speechText).getResponse();
+    },
+};
 const ErrorHandler: ErrorHandler = {
     canHandle() {
         return true;
@@ -78,11 +86,19 @@ const ErrorHandler: ErrorHandler = {
 //     .addErrorHandlers(ErrorHandler);
 
 exports.handler = SkillBuilders.custom()
-    .addRequestHandlers(LaunchRequestHandler, GetBusTimeIntentHandler)
+    .addRequestHandlers(
+        LaunchRequestHandler,
+        GetBusTimeIntentHandler,
+        getMetroStatusIntentHandler
+    )
     .addErrorHandlers(ErrorHandler);
 
 const skillBuilder = SkillBuilders.custom()
-    .addRequestHandlers(LaunchRequestHandler, GetBusTimeIntentHandler)
+    .addRequestHandlers(
+        LaunchRequestHandler,
+        GetBusTimeIntentHandler,
+        getMetroStatusIntentHandler
+    )
     .addErrorHandlers(ErrorHandler);
 
 const skill = skillBuilder.create();
