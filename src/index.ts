@@ -1,3 +1,4 @@
+// Importa moduli necessari da "ask-sdk-core" e "ask-sdk-model"
 import {
     ErrorHandler,
     HandlerInput,
@@ -9,18 +10,23 @@ import express from "express";
 import { ExpressAdapter } from "ask-sdk-express-adapter";
 import morgan from "morgan";
 
+// Crea un'app Express e configura il logger morgan per il logging delle richieste HTTP
 const app = express();
 app.use(morgan("dev"));
 
+// Definisce la porta su cui il server ascolterà, preleva dal file di configurazione o usa la porta 3000 come default
 const PORT = process.env.PORT || 3000;
 
+// Definisce il gestore delle richieste di avvio (LaunchRequestHandler)
 const LaunchRequestHandler: RequestHandler = {
+    // Verifica se il gestore può gestire la richiesta (se è un "LaunchRequest")
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return request.type === "LaunchRequest";
     },
+    // Gestisce la richiesta di avvio, risponde con un messaggio di benvenuto
     handle(handlerInput: HandlerInput): Response {
-        const speechText = "Tua mamma troia";
+        const speechText = "ethan, ciao! Come posso aiutarti oggi?";
         // const repromptSpeech = "Ti serve ancora sapere qualcosa?";
 
         return (
@@ -33,7 +39,9 @@ const LaunchRequestHandler: RequestHandler = {
     },
 };
 
+// Definisce il gestore per l'intento "GetBusTime"
 const GetBusTimeIntentHandler: RequestHandler = {
+    // Verifica se il gestore può gestire la richiesta (se è un "IntentRequest" con nome "GetBusTime")
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return (
@@ -41,6 +49,7 @@ const GetBusTimeIntentHandler: RequestHandler = {
             request.intent.name === "GetBusTime"
         );
     },
+    // Gestisce la richiesta, risponde con informazioni sul bus
     handle(handlerInput: HandlerInput): Response {
         const speechText =
             "L'autobus 92 passa tra 42 anni. La 92 è l'autobus nella quale troverai tutte le risposte.";
@@ -51,7 +60,10 @@ const GetBusTimeIntentHandler: RequestHandler = {
             .getResponse();
     },
 };
+
+// Definisce il gestore per l'intento "getMetroStatus"
 const getMetroStatusIntentHandler: RequestHandler = {
+    // Verifica se il gestore può gestire la richiesta (se è un "IntentRequest" con nome "getMetroStatus")
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return (
@@ -59,16 +71,21 @@ const getMetroStatusIntentHandler: RequestHandler = {
             request.intent.name === "getMetroStatus"
         );
     },
+    // Gestisce la richiesta, risponde con informazioni sullo stato della metro
     handle(handlerInput: HandlerInput): Response {
         const speechText = "La metro gialla è aperta";
 
         return handlerInput.responseBuilder.speak(speechText).getResponse();
     },
 };
+
+// Definisce un gestore per gli errori generici
 const ErrorHandler: ErrorHandler = {
+    // Specifica che questo gestore può gestire tutti gli errori
     canHandle() {
         return true;
     },
+    // Gestisce l'errore, logga l'errore e risponde con un messaggio di scuse
     handle(handlerInput, error) {
         const speakOutput =
             "Sorry, I had trouble doing what you asked. Please try again.";
@@ -81,10 +98,7 @@ const ErrorHandler: ErrorHandler = {
     },
 };
 
-// exports.handler = Alexa.SkillBuilders.custom()
-//     .addRequestHandlers(LaunchRequestHandler, GetBusTimeIntentHandler)
-//     .addErrorHandlers(ErrorHandler);
-
+// Configura il gestore principale per l'Alexa Skill con i gestori di richieste e l'ErrorHandler
 exports.handler = SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
@@ -93,6 +107,7 @@ exports.handler = SkillBuilders.custom()
     )
     .addErrorHandlers(ErrorHandler);
 
+// Crea l'oggetto skill e l'adapter per integrarlo con Express
 const skillBuilder = SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
@@ -103,43 +118,18 @@ const skillBuilder = SkillBuilders.custom()
 
 const skill = skillBuilder.create();
 const adapter = new ExpressAdapter(skill, false, false);
+
+// Definisce il punto di ingresso per le richieste POST al webhook di Alexa
 app.post("/api/v1/webhook-alexa", adapter.getRequestHandlers());
 app.post("/api/v1/webhook-alexa", (req, res) => {
     console.log(res);
     console.log(req);
 });
+
+// Configura Express per usare il middleware JSON
 app.use(express.json());
 
+// Avvia il server Express sulla porta definita
 app.listen(PORT, () => {
     console.log("server is running on port " + PORT);
 });
-
-// import express from 'express';
-// import bodyParser from 'body-parser';
-// import { handleGetBusTime } from './handlers/intentHandlers';
-
-// const app = express();
-// app.use(bodyParser.json());
-
-// app.post('/alexa', (req, res) => {
-//   const intent = req.body.request.intent.name;
-
-//   if (intent === 'GetBusTime') {
-//     handleGetBusTime(req, res);
-//   } else {
-//     res.json({
-//       version: '1.0',
-//       response: {
-//         outputSpeech: {
-//           type: 'PlainText',
-//           text: 'Intendo non riconosciuto',
-//         },
-//         shouldEndSession: true,
-//       },
-//     });
-//   }
-// });
-
-// app.listen(3000, () => {
-//   console.log('Server is running on port 3000');
-// });
