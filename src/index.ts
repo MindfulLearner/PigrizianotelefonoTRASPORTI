@@ -52,7 +52,7 @@ const GetBusTimeIntentHandler: RequestHandler = {
     // Gestisce la richiesta, risponde con informazioni sul bus
     handle(handlerInput: HandlerInput): Response {
         const speechText =
-            "L'autobus 92 passa tra 42 anni. La 92 è l'autobus nella quale troverai tutte le risposte.";
+            "L'autobsus 92 passa tra 42 anni. La 92 è l'autobus nella quale troverai tutte le risposte.";
 
         return handlerInput.responseBuilder
             .speak(speechText)
