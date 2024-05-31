@@ -1,4 +1,3 @@
-// Importa moduli necessari da "ask-sdk-core" e "ask-sdk-model"
 import {
     ErrorHandler,
     HandlerInput,
@@ -27,15 +26,12 @@ const LaunchRequestHandler: RequestHandler = {
     // Gestisce la richiesta di avvio, risponde con un messaggio di benvenuto
     handle(handlerInput: HandlerInput): Response {
         const speechText = "ethan, ciao! Come posso aiutarti oggi?";
-        // const repromptSpeech = "Ti serve ancora sapere qualcosa?";
+        const repromptSpeech = "Ti serve ancora sapere qualcosa?";
 
-        return (
-            handlerInput.responseBuilder
-                .speak(speechText)
-                // .reprompt(repromptSpeech)
-                // .withSimpleCard("Milano Mezzi", speechText)
-                .getResponse()
-        );
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(repromptSpeech)
+            .getResponse();
     },
 };
 
@@ -52,10 +48,12 @@ const GetBusTimeIntentHandler: RequestHandler = {
     // Gestisce la richiesta, risponde con informazioni sul bus
     handle(handlerInput: HandlerInput): Response {
         const speechText =
-            "L'autobsus 92 passa tra 42 anni. La 92 è l'autobus nella quale troverai tutte le risposte.";
+            "L'autobus 92 passa tra 42 anni. La 92 è l'autobus nella quale troverai tutte le risposte.";
+        const repromptSpeech = "Hai bisogno di altre informazioni sui trasporti?";
 
         return handlerInput.responseBuilder
             .speak(speechText)
+            .reprompt(repromptSpeech)
             .withSimpleCard("The weather today is sunny.", speechText)
             .getResponse();
     },
@@ -74,8 +72,45 @@ const getMetroStatusIntentHandler: RequestHandler = {
     // Gestisce la richiesta, risponde con informazioni sullo stato della metro
     handle(handlerInput: HandlerInput): Response {
         const speechText = "La metro gialla è aperta";
+        const repromptSpeech = "Ti serve sapere altro sulla metro?";
 
-        return handlerInput.responseBuilder.speak(speechText).getResponse();
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(repromptSpeech)
+            .getResponse();
+    },
+};
+
+// Definisce il gestore per l'intento "AMAZON.StopIntent"
+const StopIntentHandler: RequestHandler = {
+    // Verifica se il gestore può gestire la richiesta (se è un "IntentRequest" con nome "AMAZON.StopIntent")
+    canHandle(handlerInput: HandlerInput): boolean {
+        const request = handlerInput.requestEnvelope.request;
+        return (
+            request.type === "IntentRequest" &&
+            request.intent.name === "AMAZON.StopIntent"
+        );
+    },
+    // Gestisce la richiesta, risponde con un messaggio di chiusura e termina la sessione
+    handle(handlerInput: HandlerInput): Response {
+        const speechText = "A presto!";
+        
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withShouldEndSession(true)
+            .getResponse();
+    },
+};
+
+// Definisce il gestore per la richiesta di fine sessione (SessionEndedRequestHandler)
+const SessionEndedRequestHandler: RequestHandler = {
+    canHandle(handlerInput: HandlerInput): boolean {
+        const request = handlerInput.requestEnvelope.request;
+        return request.type === "SessionEndedRequest";
+    },
+    handle(handlerInput: HandlerInput): Response {
+        // Qualsiasi logica di pulizia può essere aggiunta qui
+        return handlerInput.responseBuilder.getResponse(); // Ritorna una risposta vuota
     },
 };
 
@@ -88,7 +123,7 @@ const ErrorHandler: ErrorHandler = {
     // Gestisce l'errore, logga l'errore e risponde con un messaggio di scuse
     handle(handlerInput, error) {
         const speakOutput =
-            "Sorry, I had trouble doing what you asked. Please try again.";
+            "Scusa bastardo non ho capito bene cosa hai detto. Riprova.";
         console.log(`~~~~ Error handled: ${JSON.stringify(error)}`);
 
         return handlerInput.responseBuilder
@@ -103,7 +138,9 @@ exports.handler = SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
         GetBusTimeIntentHandler,
-        getMetroStatusIntentHandler
+        getMetroStatusIntentHandler,
+        StopIntentHandler, // Aggiunge il nuovo gestore per AMAZON.StopIntent
+        SessionEndedRequestHandler // Aggiunge il gestore per SessionEndedRequest
     )
     .addErrorHandlers(ErrorHandler);
 
@@ -112,7 +149,9 @@ const skillBuilder = SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
         GetBusTimeIntentHandler,
-        getMetroStatusIntentHandler
+        getMetroStatusIntentHandler,
+        StopIntentHandler, // Aggiunge il nuovo gestore per AMAZON.StopIntent
+        SessionEndedRequestHandler // Aggiunge il gestore per SessionEndedRequest
     )
     .addErrorHandlers(ErrorHandler);
 
