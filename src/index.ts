@@ -4,30 +4,30 @@ import {
     RequestHandler,
     SkillBuilders,
 } from "ask-sdk-core";
-import { Response, SessionEndedRequest } from "ask-sdk-model";
+import { Response } from "ask-sdk-model";
 import express from "express";
 import { ExpressAdapter } from "ask-sdk-express-adapter";
 import morgan from "morgan";
+import axios from 'axios';
 
-// Crea un'app Express e configura il logger morgan per il logging delle richieste HTTP
+interface DogApiResponse {
+    message: { [key: string]: string[] };
+    status: string;
+}
+
 const app = express();
 app.use(morgan("dev"));
 
-// Definisce la porta su cui il server ascolterà, preleva dal file di configurazione o usa la porta 3000 come default
 const PORT = process.env.PORT || 3000;
 
-// Definisce il gestore delle richieste di avvio (LaunchRequestHandler)
 const launchRequestHandler: RequestHandler = {
-    // Verifica se il gestore può gestire la richiesta (se è un "LaunchRequest")
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return request.type === "LaunchRequest";
     },
-    // Gestisce la richiesta di avvio, risponde con un messaggio di benvenuto
     handle(handlerInput: HandlerInput): Response {
         const speechText = "ethan, ciao! Come posso aiutarti oggi?";
         const repromptSpeech = "Ti serve ancora sapere qualcosa?";
-
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(repromptSpeech)
@@ -35,41 +35,55 @@ const launchRequestHandler: RequestHandler = {
     },
 };
 
-// Definisce il gestore per l'intento "GetBusTime"
 const getBusTimeIntentHandler: RequestHandler = {
-    // Verifica se il gestore può gestire la richiesta (se è un "IntentRequest" con nome "GetBusTime")
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
+        console.log("Intent received:", request.type, (request as any).intent.name);
         return (
             request.type === "IntentRequest" &&
-            request.intent.name === "getBusTime"
+            (request as any).intent.name === "getBusTime"
         );
     },
-    // Gestisce la richiesta, risponde con informazioni sul bus
-    handle(handlerInput: HandlerInput): Response {
-        const speechText =
-            "L'autobus 92 passa tra 42 anni. La 92 è l'autobus nella quale troverai tutte le risposte.";
-        const repromptSpeech = "Hai bisogno di altre informazioni sui trasporti?";
+    async handle(handlerInput: HandlerInput): Promise<Response> {
+        try {
+            const response = await axios.get('https://dog.ceo/api/breeds/list/all');
+            const data: DogApiResponse = response.data;
+            const breeds = Object.keys(data.message);
+            const randomBreed = breeds[Math.floor(Math.random() * breeds.length)];
+            
+            let speechText = `L'autobus ${randomBreed} passa tra poco.`;
+            const subBreeds = data.message[randomBreed];
 
-        return handlerInput.responseBuilder
-            .speak(speechText)
-            .reprompt(repromptSpeech)
-            .withSimpleCard("The weather today is sunny.", speechText)
-            .getResponse();
+            if (subBreeds && subBreeds.length > 0) {
+                const randomSubBreed = subBreeds[Math.floor(Math.random() * subBreeds.length)];
+                speechText = `L'autobus ${randomBreed} passa alle ${randomSubBreed}.`;
+            }
+
+            const repromptSpeech = "Hai bisogno di altre informazioni sui trasporti?";
+
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt(repromptSpeech)
+                .getResponse();
+        } catch (error) {
+            console.error(error);
+            const speechText = "Non sono riuscito a recuperare le informazioni dell'autobus al momento.";
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt(speechText)
+                .getResponse();
+        }
     },
 };
 
-// Definisce il gestore per l'intento "getMetroStatus"
 const getMetroStatusIntentHandler: RequestHandler = {
-    // Verifica se il gestore può gestire la richiesta (se è un "IntentRequest" con nome "getMetroStatus")
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return (
             request.type === "IntentRequest" &&
-            request.intent.name === "getMetroStatus"
+            (request as any).intent.name === "getMetroStatus"
         );
     },
-    // Gestisce la richiesta, risponde con informazioni sullo stato della metro
     handle(handlerInput: HandlerInput): Response {
         const speechText = "La metro gialla è aperta";
         const repromptSpeech = "Ti serve sapere altro sulla metro?";
@@ -81,20 +95,16 @@ const getMetroStatusIntentHandler: RequestHandler = {
     },
 };
 
-// Definisce il gestore per l'intento "AMAZON.StopIntent"
 const stopIntentHandler: RequestHandler = {
-    // Verifica se il gestore può gestire la richiesta (se è un "IntentRequest" con nome "AMAZON.StopIntent")
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return (
             request.type === "IntentRequest" &&
-            request.intent.name === "AMAZON.StopIntent"
+            (request as any).intent.name === "AMAZON.StopIntent"
         );
     },
-    // Gestisce la richiesta, risponde con un messaggio di chiusura e termina la sessione
     handle(handlerInput: HandlerInput): Response {
         const speechText = "A presto!";
-        
         return handlerInput.responseBuilder
             .speak(speechText)
             .withShouldEndSession(true)
@@ -102,28 +112,22 @@ const stopIntentHandler: RequestHandler = {
     },
 };
 
-// Definisce il gestore per la richiesta di fine sessione (SessionEndedRequestHandler)
 const sessionEndedRequestHandler: RequestHandler = {
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return request.type === "SessionEndedRequest";
     },
     handle(handlerInput: HandlerInput): Response {
-        // Qualsiasi logica di pulizia può essere aggiunta qui
-        return handlerInput.responseBuilder.getResponse(); // Ritorna una risposta vuota
+        return handlerInput.responseBuilder.getResponse();
     },
 };
 
-// Definisce un gestore per gli errori generici
 const ErrorHandler: ErrorHandler = {
-    // Specifica che questo gestore può gestire tutti gli errori
-    canHandle() {
+    canHandle(): boolean {
         return true;
     },
-    // Gestisce l'errore, logga l'errore e risponde con un messaggio di scuse
-    handle(handlerInput, error) {
-        const speakOutput =
-            "Scusa bastardo non ho capito bene cosa hai detto. Riprova.";
+    handle(handlerInput: HandlerInput, error: Error): Response {
+        const speakOutput = "Scusa, non ho capito bene cosa hai detto. Riprova.";
         console.log(`~~~~ Error handled: ${JSON.stringify(error)}`);
 
         return handlerInput.responseBuilder
@@ -133,42 +137,23 @@ const ErrorHandler: ErrorHandler = {
     },
 };
 
-// Configura il gestore principale per l'Alexa Skill con i gestori di richieste e l'ErrorHandler
-exports.handler = SkillBuilders.custom()
-    .addRequestHandlers(
-        launchRequestHandler,
-        getBusTimeIntentHandler,
-        getMetroStatusIntentHandler,
-        stopIntentHandler, // Aggiunge il nuovo gestore per AMAZON.StopIntent
-        sessionEndedRequestHandler // Aggiunge il gestore per SessionEndedRequest
-    )
-    .addErrorHandlers(ErrorHandler);
-
-// Crea l'oggetto skill e l'adapter per integrarlo con Express
 const skillBuilder = SkillBuilders.custom()
     .addRequestHandlers(
         launchRequestHandler,
         getBusTimeIntentHandler,
         getMetroStatusIntentHandler,
-        stopIntentHandler, // Aggiunge il nuovo gestore per AMAZON.StopIntent
-        sessionEndedRequestHandler // Aggiunge il gestore per SessionEndedRequest
+        stopIntentHandler,
+        sessionEndedRequestHandler
     )
     .addErrorHandlers(ErrorHandler);
 
 const skill = skillBuilder.create();
 const adapter = new ExpressAdapter(skill, false, false);
 
-// Definisce il punto di ingresso per le richieste POST al webhook di Alexa
 app.post("/api/v1/webhook-alexa", adapter.getRequestHandlers());
-app.post("/api/v1/webhook-alexa", (req, res) => {
-    console.log(res);
-    console.log(req);
-});
 
-// Configura Express per usare il middleware JSON
 app.use(express.json());
 
-// Avvia il server Express sulla porta definita
 app.listen(PORT, () => {
     console.log("server is running on port " + PORT);
 });
