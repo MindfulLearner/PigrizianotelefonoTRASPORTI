@@ -42,7 +42,7 @@ const getBusTimeIntentHandler: RequestHandler = {
         const request = handlerInput.requestEnvelope.request;
         return (
             request.type === "IntentRequest" &&
-            request.intent.name === "GetBusTime"
+            request.intent.name === "getBusTime"
         );
     },
     // Gestisce la richiesta, risponde con informazioni sul bus
@@ -81,6 +81,39 @@ const getMetroStatusIntentHandler: RequestHandler = {
     },
 };
 
+// Definisce il gestore per l'intento "AMAZON.StopIntent"
+const stopIntentHandler: RequestHandler = {
+    // Verifica se il gestore può gestire la richiesta (se è un "IntentRequest" con nome "AMAZON.StopIntent")
+    canHandle(handlerInput: HandlerInput): boolean {
+        const request = handlerInput.requestEnvelope.request;
+        return (
+            request.type === "IntentRequest" &&
+            request.intent.name === "AMAZON.StopIntent"
+        );
+    },
+    // Gestisce la richiesta, risponde con un messaggio di chiusura e termina la sessione
+    handle(handlerInput: HandlerInput): Response {
+        const speechText = "A presto!";
+        
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .withShouldEndSession(true)
+            .getResponse();
+    },
+};
+
+// Definisce il gestore per la richiesta di fine sessione (SessionEndedRequestHandler)
+const sessionEndedRequestHandler: RequestHandler = {
+    canHandle(handlerInput: HandlerInput): boolean {
+        const request = handlerInput.requestEnvelope.request;
+        return request.type === "SessionEndedRequest";
+    },
+    handle(handlerInput: HandlerInput): Response {
+        // Qualsiasi logica di pulizia può essere aggiunta qui
+        return handlerInput.responseBuilder.getResponse(); // Ritorna una risposta vuota
+    },
+};
+
 // Definisce un gestore per gli errori generici
 const ErrorHandler: ErrorHandler = {
     // Specifica che questo gestore può gestire tutti gli errori
@@ -90,7 +123,7 @@ const ErrorHandler: ErrorHandler = {
     // Gestisce l'errore, logga l'errore e risponde con un messaggio di scuse
     handle(handlerInput, error) {
         const speakOutput =
-            "Sorry, I had trouble doing what you asked. Please try again.";
+            "Scusa bastardo non ho capito bene cosa hai detto. Riprova.";
         console.log(`~~~~ Error handled: ${JSON.stringify(error)}`);
 
         return handlerInput.responseBuilder
@@ -105,7 +138,9 @@ exports.handler = SkillBuilders.custom()
     .addRequestHandlers(
         launchRequestHandler,
         getBusTimeIntentHandler,
-        getMetroStatusIntentHandler
+        getMetroStatusIntentHandler,
+        stopIntentHandler, // Aggiunge il nuovo gestore per AMAZON.StopIntent
+        sessionEndedRequestHandler // Aggiunge il gestore per SessionEndedRequest
     )
     .addErrorHandlers(ErrorHandler);
 
@@ -114,7 +149,9 @@ const skillBuilder = SkillBuilders.custom()
     .addRequestHandlers(
         launchRequestHandler,
         getBusTimeIntentHandler,
-        getMetroStatusIntentHandler
+        getMetroStatusIntentHandler,
+        stopIntentHandler, // Aggiunge il nuovo gestore per AMAZON.StopIntent
+        sessionEndedRequestHandler // Aggiunge il gestore per SessionEndedRequest
     )
     .addErrorHandlers(ErrorHandler);
 
