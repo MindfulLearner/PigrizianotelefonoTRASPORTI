@@ -20,13 +20,13 @@ const LaunchRequestHandler: RequestHandler = {
         return request.type === "LaunchRequest";
     },
     handle(handlerInput: HandlerInput): Response {
-        const speechText = "Tua mamma troia";
-        // const repromptSpeech = "Ti serve ancora sapere qualcosa?";
+        const speechText = "JAASSS GAAY";
+        const repromptSpeech = "Ci sei ancora?";
 
         return (
             handlerInput.responseBuilder
                 .speak(speechText)
-                // .reprompt(repromptSpeech)
+                .reprompt(repromptSpeech)
                 // .withSimpleCard("Milano Mezzi", speechText)
                 .getResponse()
         );
@@ -43,7 +43,7 @@ const GetBusTimeIntentHandler: RequestHandler = {
     },
     handle(handlerInput: HandlerInput): Response {
         const speechText =
-            "L'autobus 92 passa tra 42 anni. La 92 è l'autobus nella quale troverai tutte le risposte.";
+            "L'autobus 92 passa tra 42 anni.";
 
         return handlerInput.responseBuilder
             .speak(speechText)
@@ -51,20 +51,37 @@ const GetBusTimeIntentHandler: RequestHandler = {
             .getResponse();
     },
 };
+
 const getMetroStatusIntentHandler: RequestHandler = {
     canHandle(handlerInput: HandlerInput): boolean {
         const request = handlerInput.requestEnvelope.request;
         return (
             request.type === "IntentRequest" &&
-            request.intent.name === "getMetroStatus"
+            request.intent.name === "metroStatusIntent"
         );
     },
     handle(handlerInput: HandlerInput): Response {
         const speechText = "La metro gialla è aperta";
 
+        return handlerInput.responseBuilder.speak(speechText) .withSimpleCard("la metro gialla", speechText).getResponse();
+    },
+};
+
+const FallBackIntentHandler: RequestHandler = {
+    canHandle(handlerInput: HandlerInput): boolean {
+        const request = handlerInput.requestEnvelope.request;
+        return (
+            request.type === "IntentRequest" &&
+            request.intent.name === "AMAZON.FallbackIntent"
+        );
+    },
+    handle(handlerInput: HandlerInput): Response {
+        const speechText = "Non ho capito cosa mi stai chiedendo";
+
         return handlerInput.responseBuilder.speak(speechText).getResponse();
     },
 };
+
 const ErrorHandler: ErrorHandler = {
     canHandle() {
         return true;
@@ -89,7 +106,8 @@ exports.handler = SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
         GetBusTimeIntentHandler,
-        getMetroStatusIntentHandler
+        getMetroStatusIntentHandler,
+        FallBackIntentHandler
     )
     .addErrorHandlers(ErrorHandler);
 
@@ -97,7 +115,8 @@ const skillBuilder = SkillBuilders.custom()
     .addRequestHandlers(
         LaunchRequestHandler,
         GetBusTimeIntentHandler,
-        getMetroStatusIntentHandler
+        getMetroStatusIntentHandler,
+        FallBackIntentHandler
     )
     .addErrorHandlers(ErrorHandler);
 
