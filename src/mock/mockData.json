@@ -1,0 +1,45 @@
+[
+    {
+        "stopId": 4519007,
+        "epochDay": 19878,
+        "lineArrivals": {
+            "lineId": 1274454,
+            "arrivals": [
+                {
+                    "patternId": 8144968,
+                    "tripId": 972678967,
+                    "staticEtdUTC": 1717530330000,
+                    "rtEtdUTC": 1717530594000,
+                    "isLastArrival": 0,
+                    "durationInSeconds": 2640,
+                    "vehicleLocation": {
+                        "latlon": {
+                            "latitude": 45496225,
+                            "longitude": 9177442
+                        },
+                        "progress": {
+                            "nextStopIndex": 30,
+                            "progress": 1
+                        },
+                        "vehicleId": "::972678967::4519007",
+                        "vehicleSampleTimeUtc": 1717530474824,
+                        "vehicleStatus": 1,
+                        "locationSource": 4
+                    },
+                    "stopIndex": 31,
+                    "patternStopsSize": 40
+                }
+            ]
+        },
+        "nextPollingIntervalSecs": 20
+    },
+    {
+        "stopId": 4519007,
+        "epochDay": 19878,
+        "lineArrivals": {
+            "lineId": 3794407,
+            "arrivals": []
+        },
+        "nextPollingIntervalSecs": 20
+    }
+]
